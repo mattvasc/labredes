@@ -30,6 +30,31 @@ class Node():
                 print(e)
 
     def updateVector(self, nbvector):
+        # flag de controle de atualização
+        updated = 0
+
+        # precisa receber ID do vizinho
+        print("Recebi uma atualização do nó " + nbID)
+        print("Vetor atual do nó " + self.ID)
+        self.printVector()
+
+        # recebe a distancia ate o vizinho
+        distnode = nbvector[self.ID]
+
+        for n in range(0, len(nbvector)):
+            # se a (distancia ate o vizinho + a distancia do vizinho ate o nó n) for menor
+            # que a distancia guardada na tabela, substitue. se não, mantém.
+            if (distnode + nbvector[n]) < self.vector[n]:
+                self.vector[n] = distnode + nbvector[n]
+                updated++
+
+        if updated > 0:
+            print ("Vetor de " + self.ID + " atualizado")
+            self.printVector()
+            # aqui chama o envia tabela? ou manda mesmo quando não tiver atualizada?
+        else:
+            print ("Vetor de " + self.ID + " não teve atualização")
+
         # Initialization:
             # for all destinations y in N:
                 # D x (y) = c(x,y)
@@ -50,6 +75,16 @@ class Node():
         with open('topology.json') as data_file:
             data = json.load(data_file)
         self.vector = data[self.ID]
+    	print ("Tabela do nó " + self.ID + " inicializada")
+        # preenche lista de vizinhos (não precisa ser atualizada nunca)
         for n in range(0, len(self.vector)):
             if self.vector[n] != 999:
                 self.neighbour.append(n)
+
+    def printVector(self):
+        print "Distâncias:\n"
+        for n in range(0, len(self.vector)):
+            print("Nó " + n + ": " + self.vector[n])
+
+class Listener():
+    def __init__(self):
