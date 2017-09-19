@@ -80,6 +80,7 @@ class Node():
         for n in range(0, len(self.vector)):
             if self.vector[n] != 999:
                 self.neighbour.append(n)
+        # dispara timer para enviar o update
 
     def printVector(self):
         print "Distâncias:\n"
