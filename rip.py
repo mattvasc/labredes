@@ -21,6 +21,7 @@ class Node():
         self.vector = list() # vetor de custos
         self.nodesqt = 0 # quantidade de nós
         self.initVector()
+        self.count = 1
 
     def sendVector(self):
         global timer
@@ -32,7 +33,7 @@ class Node():
                 sock.connect(server_address)
                 msg = "[" + str(self.ID) + "," + json.dumps(self.vector) + "]"
                 sock.send(msg.encode())
-                print ("Enviei minha tabela para: " + str(self.neighbour[n]))
+                print ("\nEnviei minha tabela para: " + str(self.neighbour[n]))
             except Exception as e:
                 print(e)
 
@@ -40,9 +41,9 @@ class Node():
         # flag de controle de atualização
         updated = False
 
-        # precisa receber ID do vizinho
-        print("Recebi uma atualização do nó " + str(nbvector[0]))
-        print("Meu vetor de distâncias atual:")
+        print("\n#" + str(self.count) + " - Recebi uma atualização do nó " + str(nbvector[0]))
+        self.count = self.count + 1
+        print("\nMeu vetor de distâncias atual:")
         self.printVector()
 
         # recebe a distancia ate o vizinho
@@ -56,34 +57,18 @@ class Node():
                 updated = True
 
         if updated == True:
-            print ("Vetor de " + str(self.ID) + " atualizado")
+            print ("\nVetor de " + str(self.ID) + " atualizado")
             self.printVector()
-            # aqui chama o envia tabela? ou manda mesmo quando não tiver atualizada?
         else:
-            print ("Vetor de " + str(self.ID) + " não teve atualização")
+            print ("\nVetor de " + str(self.ID) + " não teve atualização\n")
 
-        # Initialization:
-            # for all destinations y in N:
-                # D x (y) = c(x,y)
-                # /* if y is not a neighbor then c(x,y) = ∞ */
-            # for each neighbor w
-                # D w (y) = ? for all destinations y in N
-            # for each neighbor w
-                # send distance vector D x = [D x (y): y in N] to w
-        #  loop
-            # wait (until I see a link cost change to some neighbor w or
-                # until I receive a distance vector from some neighbor w)
-            # for each y in N:
-                # D x (y) = min v {c(x,v) + D v (y)}
-            # if D x (y) changed for any destination y
-                # send distance vector D x = [D x (y): y in N] to all neighbors
 
     def initVector(self):
         with open('topology.json') as data_file:
             data = json.load(data_file)
         self.vector = data[self.ID]
         self.nodesqt = len(data)
-        print ("Tabela do nó " + str(self.ID) + " inicializada")
+        print ("\nTabela do nó " + str(self.ID) + " inicializada")
         # preenche lista de vizinhos (não precisa ser atualizada nunca)
         for n in range(0, len(self.vector)):
             if self.vector[n] != 999 and n != self.ID:
@@ -91,7 +76,7 @@ class Node():
         # dispara timer para enviar o update
 
     def printVector(self):
-        print ("Distâncias:\n")
+        print ("\nDistâncias:")
         for n in range(0, len(self.vector)):
             print("Nó " + str(n) + ": " + str(self.vector[n]))
 
@@ -103,6 +88,8 @@ class TicTacker(Thread): # decrementa o timer, e ao zerar, chama o enviar mensag
     def run(self):
         global timer
         global lock
+
+        time.sleep(0.100)
         while 1:
             with lock:
                 if(timer > 0):
@@ -110,6 +97,7 @@ class TicTacker(Thread): # decrementa o timer, e ao zerar, chama o enviar mensag
                 else:
                     n.sendVector()
                     timer = random.randrange(4, 9)
+            print((str(timer) + " "), sep=' ', end='', flush=True)
             time.sleep(1)
 
 class Listener(Thread):
@@ -136,7 +124,7 @@ class Listener(Thread):
                 try:
                     msg = connectionSocket.recv(512) #[id, [vector]]
                     msg = msg.decode('utf-8')
-                    print ("Recebi da rede: ", msg)
+                    #print ("Recebi da rede: ", msg)
                     data = json.loads(str(msg))
                     n.updateVector(data)
                     with lock:
