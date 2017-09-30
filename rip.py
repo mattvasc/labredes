@@ -107,10 +107,6 @@ class Listener(Thread):
         Thread.__init__(self)
 
     def run(self):
-        global n
-        global timer
-        global lock
-
         serverPort = self.port
         serverSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         try:
@@ -121,22 +117,39 @@ class Listener(Thread):
 
             while 1:
                 connectionSocket, addr = serverSocket.accept()
-                try:
-                    msg = connectionSocket.recv(512) #[id, [vector]]
-                    msg = msg.decode('utf-8')
-                    #print ("Recebi da rede: ", msg)
-                    data = json.loads(str(msg))
-                    n.updateVector(data)
-                    with lock:
-                        timer = random.randrange(4,9)
-
-                except Exception as e :
-                    exec_type, exec_obj, exec_tb = sys.exc_info()
-                    print ("Erro:", exec_type, exec_tb.tb_lineno,"\n",e)
-                    sys.exit(2)
+                c = ClientHandler(connectionSocket, addr)
+                c.start()
 
         except Exception as e :
                 print (e)
+
+
+
+class ClientHandler(Thread):
+    def __init__(self,connectionSocket, addr):
+        self.addr = addr
+        self.connectionSocket = connectionSocket
+        Thread.__init__(self)
+
+    def run(self):
+        global n
+        global timer
+        global lock
+        try:
+            msg = self.connectionSocket.recv(512) #[id, [vector]]
+            msg = msg.decode('utf-8')
+            #print ("Recebi da rede: ", msg)
+            data = json.loads(str(msg))
+            n.updateVector(data)
+            with lock:
+                timer = random.randrange(4,9)
+
+        except Exception as e :
+            exec_type, exec_obj, exec_tb = sys.exc_info()
+            print ("Erro:", exec_type, exec_tb.tb_lineno,"\n",e)
+            sys.exit(2)
+
+
 
 def main():
     if( len(sys.argv)!=2):
