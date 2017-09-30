@@ -152,6 +152,7 @@ class ClientHandler(Thread):
 
 
 def main():
+    os.system('cls' if os.name == 'nt' else 'clear')
     if( len(sys.argv)!=2):
         print("Chamada inválida use: $ python3 rip.py NUM_NO")
         sys.exit(1)
