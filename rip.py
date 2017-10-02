@@ -8,7 +8,8 @@ import time
 import json
 from threading import Thread
 from threading import Lock
-
+import colorama
+from colorama import Fore, Style, Back
 #globais
 timer = random.randrange(8,10)
 lock = Lock()
@@ -35,13 +36,14 @@ class Node():
                 sock.send(msg.encode())
                 print ("\nEnviei minha tabela para: " + str(self.neighbour[n]))
             except Exception as e:
-                print(e)
+                print ("\n",Fore.WHITE,Back.RED,e,Style.RESET_ALL)
+
 
     def updateVector(self, nbvector):  #[id, [] ]
         # flag de controle de atualização
         updated = False
 
-        print("\n#" + str(self.count) + " - Recebi uma atualização do nó " + str(nbvector[0]))
+        print("\n\n",Back.WHITE,Fore.BLUE,"#" + str(self.count) + " - Recebi uma atualização do nó " + str(nbvector[0]), Style.RESET_ALL)
         self.count = self.count + 1
         print("\nMeu vetor de distâncias atual:")
         self.printVector()
@@ -57,10 +59,10 @@ class Node():
                 updated = True
 
         if updated == True:
-            print ("\nVetor de " + str(self.ID) + " atualizado")
+            print (Fore.GREEN,"\nVetor de " + str(self.ID) + " atualizado",Style.RESET_ALL)
             self.printVector()
         else:
-            print ("\nVetor de " + str(self.ID) + " não teve atualização\n")
+            print ("\n",Fore.RED,Back.WHITE,"Vetor de " + str(self.ID) + " não teve atualização",Style.RESET_ALL,"\n")
 
 
     def initVector(self):
@@ -68,7 +70,7 @@ class Node():
             data = json.load(data_file)
         self.vector = data[self.ID]
         self.nodesqt = len(data)
-        print ("\nTabela do nó " + str(self.ID) + " inicializada")
+        print ("\nTabela do nó " + Fore.BLUE,Back.YELLOW, str(self.ID),Style.RESET_ALL + " inicializada")
         # preenche lista de vizinhos (não precisa ser atualizada nunca)
         for n in range(0, len(self.vector)):
             if self.vector[n] != 999 and n != self.ID:
@@ -97,7 +99,7 @@ class TicTacker(Thread): # decrementa o timer, e ao zerar, chama o enviar mensag
                 else:
                     n.sendVector()
                     timer = random.randrange(4, 9)
-            print((str(timer) + " "), sep=' ', end='', flush=True)
+            print(Fore.YELLOW,(str(timer) + " "), Style.RESET_ALL, sep=' ', end='', flush=True)
             time.sleep(1)
 
 class Listener(Thread):
@@ -112,7 +114,7 @@ class Listener(Thread):
         try:
             serverSocket.bind(('',serverPort))
             serverSocket.listen(1)
-            print ('*** Subindo o nó de número ', self.port - 52000,' no total de ', self.nodesqt,'***')
+            print ('*** Subindo o nó de número ', Fore.MAGENTA,Back.WHITE, self.port - 52000,Style.RESET_ALL,' no total de ', Fore.MAGENTA,Back.WHITE,self.nodesqt,Style.RESET_ALL,'***')
             print('*** No ar através da porta: ', self.port,' ***' )
 
             while 1:
@@ -121,7 +123,7 @@ class Listener(Thread):
                 c.start()
 
         except Exception as e :
-                print (e)
+                print (Fore.WHITE,Back.RED,e,Style.RESET_ALL)
 
 
 
