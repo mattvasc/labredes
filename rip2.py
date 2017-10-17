@@ -11,7 +11,7 @@ from threading import Lock
 import colorama
 from colorama import Fore, Style, Back
 #globais
-timer = random.randrange(8,10)
+timer2 = random.randrange(8,10)
 lock = Lock()
 
 
@@ -20,8 +20,8 @@ class Node():
         self.ID = ID # identificador do nó
         self.neighbour = list() # lista de vizinhos
         self.vector = list() # vetor de custos
-        self.nodesqt = 0 # quantidade de nós
         self.initVector()
+        self.nodesqt = 0 # quantidade de nós
         self.count = 1
 
     def sendVector(self):
@@ -42,6 +42,7 @@ class Node():
     def updateVector(self, nbvector):  #[id, [] ]
         # flag de controle de atualização
         updated = False
+        global timer
 
         print("\n\n",Back.WHITE,Fore.BLUE,"#" + str(self.count) + " - Recebi uma atualização do nó " + str(nbvector[0]), Style.RESET_ALL)
         self.count = self.count + 1
@@ -61,12 +62,16 @@ class Node():
         if updated == True:
             print ("\n",Back.WHITE,Fore.GREEN,"Vetor de " + str(self.ID) + " atualizado",Style.RESET_ALL)
             self.printVector()
+            self.sendVector()
+            t = TicTacker()
+            t.start()
+            timer = random.randrange(4,6)
         else:
             print ("\n",Fore.RED,Back.WHITE,"Vetor de " + str(self.ID) + " não teve atualização",Style.RESET_ALL,"\n")
 
 
     def initVector(self):
-        with open('topology2.json') as data_file:
+        with open('topology.json') as data_file:
             data = json.load(data_file)
         self.vector = data[self.ID]
         self.nodesqt = len(data)
@@ -97,9 +102,27 @@ class TicTacker(Thread): # decrementa o timer, e ao zerar, chama o enviar mensag
                 if(timer > 0):
                     timer = timer - 1
                 else:
-                    n.sendVector()
-                    timer = random.randrange(1, 3)
+                    print("Parando a execução...")
+                    os._exit(1)
             print(Fore.YELLOW,(str(timer) + " "), Style.RESET_ALL, sep=' ', end='', flush=True)
+            time.sleep(1)
+
+class TicTacker2(Thread): # decrementa o timer, e ao zerar, chama o enviar mensagem
+    def __init__(self):
+        Thread.__init__(self)
+
+    def run(self):
+        global timer2
+        global lock
+
+        time.sleep(0.100)
+        while 1:
+            with lock:
+                if(timer2 > 0):
+                    timer2 = timer2 - 1
+                else:
+                    n.sendVector()
+            print(Fore.YELLOW,(str(timer2) + " "), Style.RESET_ALL, sep=' ', end='', flush=True)
             time.sleep(1)
 
 class Listener(Thread):
@@ -162,10 +185,9 @@ def main():
     n = Node(int(sys.argv[1]))
     nodesqt = n.nodesqt
     listener = Listener(int(sys.argv[1]), nodesqt)
-    t = TicTacker()
-
     listener.start()
-    t.start()
+    t2 = TicTacker2()
+    t2.start()
 
 if __name__ == "__main__":
     main()
