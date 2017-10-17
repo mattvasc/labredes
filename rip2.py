@@ -11,17 +11,18 @@ from threading import Lock
 import colorama
 from colorama import Fore, Style, Back
 #globais
-timer2 = random.randrange(8,10)
+timer = random.randrange(8,10)
 lock = Lock()
 
 
 class Node():
-    def __init__(self, ID):
+    def __init__(self, ID, file_name):
         self.ID = ID # identificador do nó
         self.neighbour = list() # lista de vizinhos
         self.vector = list() # vetor de custos
-        self.initVector()
         self.nodesqt = 0 # quantidade de nós
+        self.file_name = file_name
+        self.initVector()
         self.count = 1
 
     def sendVector(self):
@@ -43,6 +44,7 @@ class Node():
         # flag de controle de atualização
         updated = False
         global timer
+        global lock
 
         print("\n\n",Back.WHITE,Fore.BLUE,"#" + str(self.count) + " - Recebi uma atualização do nó " + str(nbvector[0]), Style.RESET_ALL)
         self.count = self.count + 1
@@ -63,15 +65,14 @@ class Node():
             print ("\n",Back.WHITE,Fore.GREEN,"Vetor de " + str(self.ID) + " atualizado",Style.RESET_ALL)
             self.printVector()
             self.sendVector()
-            t = TicTacker()
-            t.start()
-            timer = random.randrange(4,6)
+            with lock:
+                timer = 5
         else:
             print ("\n",Fore.RED,Back.WHITE,"Vetor de " + str(self.ID) + " não teve atualização",Style.RESET_ALL,"\n")
 
 
     def initVector(self):
-        with open('topology.json') as data_file:
+        with open(self.file_name) as data_file:
             data = json.load(data_file)
         self.vector = data[self.ID]
         self.nodesqt = len(data)
@@ -102,28 +103,12 @@ class TicTacker(Thread): # decrementa o timer, e ao zerar, chama o enviar mensag
                 if(timer > 0):
                     timer = timer - 1
                 else:
-                    print("Parando a execução...")
+                    print("\nParando a execução...")
                     os._exit(1)
             print(Fore.YELLOW,(str(timer) + " "), Style.RESET_ALL, sep=' ', end='', flush=True)
             time.sleep(1)
 
-class TicTacker2(Thread): # decrementa o timer, e ao zerar, chama o enviar mensagem
-    def __init__(self):
-        Thread.__init__(self)
 
-    def run(self):
-        global timer2
-        global lock
-
-        time.sleep(0.100)
-        while 1:
-            with lock:
-                if(timer2 > 0):
-                    timer2 = timer2 - 1
-                else:
-                    n.sendVector()
-            print(Fore.YELLOW,(str(timer2) + " "), Style.RESET_ALL, sep=' ', end='', flush=True)
-            time.sleep(1)
 
 class Listener(Thread):
     def __init__(self, ID, nodesqt):
@@ -158,15 +143,12 @@ class ClientHandler(Thread):
 
     def run(self):
         global n
-        global timer
-        global lock
         try:
             msg = self.connectionSocket.recv(512) #[id, [vector]]
             msg = msg.decode('utf-8')
             data = json.loads(str(msg))
             n.updateVector(data)
-            with lock:
-                timer = random.randrange(1,3)
+
 
         except Exception as e :
             exec_type, exec_obj, exec_tb = sys.exc_info()
@@ -177,17 +159,20 @@ class ClientHandler(Thread):
 
 def main():
     os.system('cls' if os.name == 'nt' else 'clear')
-    if( len(sys.argv)!=2):
-        print("Chamada inválida use: $ python3 rip.py NUM_NO")
+    if( len(sys.argv)!=3):
+        print("Chamada inválida use: $ python3 rip.py NUM_NO NOME_ARQUIVO_DADOS.json")
         sys.exit(1)
     global n
 
-    n = Node(int(sys.argv[1]))
+    n = Node(int(sys.argv[1]), sys.argv[2])
     nodesqt = n.nodesqt
     listener = Listener(int(sys.argv[1]), nodesqt)
     listener.start()
-    t2 = TicTacker2()
-    t2.start()
+    print("Aguardando alguns segundos para os outros processos subirem...")
+    time.sleep(10)
+    n.sendVector()
+    t = TicTacker()
+    t.start()
 
 if __name__ == "__main__":
     main()
