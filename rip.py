@@ -71,7 +71,7 @@ class Node():
         self.vector = data[self.ID]
         self.nodesqt = len(data)
         print ("\nTabela do nó " + Fore.BLUE,Back.YELLOW, str(self.ID),Style.RESET_ALL + " inicializada")
-        # preenche lista de vizinhos (não precisa ser atualizada nunca)
+        # preenche lista de vizinhos
         for n in range(0, len(self.vector)):
             if self.vector[n] != 999 and n != self.ID:
                 self.neighbour.append(n)
@@ -140,7 +140,6 @@ class ClientHandler(Thread):
         try:
             msg = self.connectionSocket.recv(512) #[id, [vector]]
             msg = msg.decode('utf-8')
-            #print ("Recebi da rede: ", msg)
             data = json.loads(str(msg))
             n.updateVector(data)
             with lock:
