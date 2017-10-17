@@ -11,6 +11,7 @@ from threading import Lock
 import colorama
 from colorama import Fore, Style, Back
 #globais
+timer = random.randrange(8,10)
 timer2 = random.randrange(8,10)
 lock = Lock()
 
@@ -37,6 +38,8 @@ class Node():
                 print ("\nEnviei minha tabela para: " + str(self.neighbour[n]))
             except Exception as e:
                 print ("\n",Fore.WHITE,Back.RED,e,Style.RESET_ALL)
+        t = TicTacker()
+        t.start()
 
 
     def updateVector(self, nbvector):  #[id, [] ]
@@ -63,11 +66,10 @@ class Node():
             print ("\n",Back.WHITE,Fore.GREEN,"Vetor de " + str(self.ID) + " atualizado",Style.RESET_ALL)
             self.printVector()
             self.sendVector()
-            t = TicTacker()
-            t.start()
-            timer = random.randrange(4,6)
+            timer = random.randrange(8,10)
         else:
             print ("\n",Fore.RED,Back.WHITE,"Vetor de " + str(self.ID) + " não teve atualização",Style.RESET_ALL,"\n")
+            timer = random.randrange(8,10)
 
 
     def initVector(self):
@@ -88,7 +90,7 @@ class Node():
             print("Nó " + str(n) + ": " + str(self.vector[n]))
 
 
-class TicTacker(Thread): # decrementa o timer, e ao zerar, chama o enviar mensagem
+class TicTacker(Thread): # decrementa o timer, e ao zerar, para execução
     def __init__(self):
         Thread.__init__(self)
 
